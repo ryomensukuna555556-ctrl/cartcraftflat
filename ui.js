@@ -48,7 +48,12 @@ const el = {
   checkoutDoneBtn: document.getElementById('checkout-done-btn'),
 
   toast: document.getElementById('toast'),
-  toastMessage: document.getElementById('toast-message')
+  toastMessage: document.getElementById('toast-message'),
+
+  storyOverlay: document.getElementById('story-overlay'),
+  storyModal: document.getElementById('story-modal'),
+  storyCloseBtn: document.getElementById('story-close-btn'),
+  storyDoneBtn: document.getElementById('story-done-btn')
 };
 
 // ---------------------------------------------------------------------------
@@ -275,6 +280,28 @@ export function showCheckoutSuccess(order) {
 
 export function showCheckoutError(message) {
   showToast(message || 'Checkout failed. Please try again.', 'error');
+}
+
+// ---------------------------------------------------------------------------
+// Story overlay ("Our story" / "Journal")
+// ---------------------------------------------------------------------------
+
+export function openStoryOverlay() {
+  el.storyOverlay.classList.remove('hidden');
+  el.storyOverlay.classList.add('flex');
+  requestAnimationFrame(() => {
+    el.storyOverlay.classList.remove('opacity-0');
+    el.storyModal.classList.remove('scale-95');
+  });
+}
+
+export function closeStoryOverlay() {
+  el.storyOverlay.classList.add('opacity-0');
+  el.storyModal.classList.add('scale-95');
+  setTimeout(() => {
+    el.storyOverlay.classList.add('hidden');
+    el.storyOverlay.classList.remove('flex');
+  }, 300);
 }
 
 // ---------------------------------------------------------------------------

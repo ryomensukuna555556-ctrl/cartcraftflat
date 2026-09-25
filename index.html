@@ -69,7 +69,7 @@
       <nav class="hidden items-center gap-8 text-sm font-medium text-zinc-400 md:flex">
         <a href="#shop" class="transition-colors hover:text-white">Shop</a>
         <a href="#" class="transition-colors hover:text-white">Collections</a>
-        <a href="#" class="transition-colors hover:text-white">Journal</a>
+        <a href="#" id="journal-link" data-action="open-story" class="transition-colors hover:text-white">Journal</a>
         <a href="#" class="transition-colors hover:text-white">About</a>
       </nav>
 
@@ -106,7 +106,7 @@
         <a href="#shop" class="rounded-full bg-gold-400 px-7 py-3 text-sm font-semibold text-ink-950 shadow-glow transition-transform hover:scale-[1.03] active:scale-95">
           Shop the collection
         </a>
-        <a href="#" class="rounded-full border border-white/15 px-7 py-3 text-sm font-semibold text-zinc-200 transition-colors hover:bg-white/5">
+        <a href="#" id="our-story-link" data-action="open-story" class="rounded-full border border-white/15 px-7 py-3 text-sm font-semibold text-zinc-200 transition-colors hover:bg-white/5">
           Our story
         </a>
       </div>
@@ -280,6 +280,55 @@
           Continue shopping
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ============================== STORY OVERLAY ============================== -->
+  <div id="story-overlay" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/70 p-4 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+    <div id="story-modal" class="max-h-[85vh] w-full max-w-lg scale-95 overflow-y-auto rounded-3xl border border-white/10 bg-ink-900 p-7 shadow-2xl transition-transform duration-300">
+      <div class="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-gold-400">Journal</p>
+          <h3 class="font-display text-xl font-semibold text-white">Our story</h3>
+        </div>
+        <button id="story-close-btn" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-white/5 hover:text-white" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-sm leading-relaxed text-zinc-400">
+        <p>CartCraft started in 2016 in a two-room workshop, built on one stubborn idea: everyday objects deserve the same care as luxury ones. No trend-chasing, no disposable batches — just materials chosen to outlast the people who buy them.</p>
+        <p>A decade later, that idea hasn't changed. Every product in this catalog is still designed in-house, tested well past the point of reasonable patience, and priced without the usual markup games.</p>
+      </div>
+
+      <ol class="mt-6 space-y-5 border-l border-white/10 pl-5">
+        <li class="relative">
+          <span class="absolute -left-[25px] top-1 h-2.5 w-2.5 rounded-full bg-gold-400"></span>
+          <p class="text-xs font-semibold uppercase tracking-wider text-gold-300">2016</p>
+          <p class="mt-1 text-sm text-zinc-300">Founded in a small workshop with a single leather-goods line and a waiting list of forty people.</p>
+        </li>
+        <li class="relative">
+          <span class="absolute -left-[25px] top-1 h-2.5 w-2.5 rounded-full bg-gold-400"></span>
+          <p class="text-xs font-semibold uppercase tracking-wider text-gold-300">2019</p>
+          <p class="mt-1 text-sm text-zinc-300">Opened our first flagship store and expanded into audio and wearables.</p>
+        </li>
+        <li class="relative">
+          <span class="absolute -left-[25px] top-1 h-2.5 w-2.5 rounded-full bg-gold-400"></span>
+          <p class="text-xs font-semibold uppercase tracking-wider text-gold-300">2022</p>
+          <p class="mt-1 text-sm text-zinc-300">Moved to fully traceable materials and a lifetime-repair policy across the catalog.</p>
+        </li>
+        <li class="relative">
+          <span class="absolute -left-[25px] top-1 h-2.5 w-2.5 rounded-full bg-gold-400"></span>
+          <p class="text-xs font-semibold uppercase tracking-wider text-gold-300">2026</p>
+          <p class="mt-1 text-sm text-zinc-300">Took the full collection online — the store you're shopping right now.</p>
+        </li>
+      </ol>
+
+      <p class="mt-6 text-[11px] text-zinc-600">This is placeholder brand copy for a portfolio demo — not a real company history.</p>
+
+      <button id="story-done-btn" class="mt-6 w-full rounded-full border border-white/15 py-3 text-sm font-semibold text-zinc-200 transition-colors hover:bg-white/5">
+        Close
+      </button>
     </div>
   </div>
 

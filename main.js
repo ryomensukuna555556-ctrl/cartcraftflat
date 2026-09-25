@@ -68,11 +68,18 @@ function bindStaticControls() {
     ui.closeCheckoutOverlay();
   });
 
+  ui.el.storyCloseBtn.addEventListener('click', () => ui.closeStoryOverlay());
+  ui.el.storyDoneBtn.addEventListener('click', () => ui.closeStoryOverlay());
+  ui.el.storyOverlay.addEventListener('click', (e) => {
+    if (e.target === ui.el.storyOverlay) ui.closeStoryOverlay();
+  });
+
   // Escape key closes whichever overlay is open.
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     ui.closeCartDrawer();
     ui.closeCheckoutOverlay();
+    ui.closeStoryOverlay();
   });
 }
 
@@ -88,6 +95,12 @@ function bindDelegatedClicks() {
     if (!actionEl) return;
 
     const action = actionEl.dataset.action;
+
+    if (action === 'open-story') {
+      e.preventDefault();
+      ui.openStoryOverlay();
+      return;
+    }
 
     if (action === 'add-to-cart') {
       const card = actionEl.closest('[data-product-id]');
