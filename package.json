@@ -1,0 +1,14 @@
+{
+  "name": "cartcraft",
+  "version": "1.0.0",
+  "description": "CartCraft — a premium full-stack vanilla e-commerce portfolio demo",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
