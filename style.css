@@ -53,3 +53,13 @@ html {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Hides the scrollbar on the product-detail image carousel while keeping it
+   swipeable/scrollable (touch + trackpad still work fine either way). */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

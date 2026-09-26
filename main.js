@@ -19,6 +19,88 @@ let allProducts = [];
 /** Which collection is currently shown in the grid. */
 let currentCollection = 'all';
 
+/** The product currently open in the Product Detail Screen, if any. */
+let currentDetailProduct = null;
+
+/**
+ * Which "cart" the checkout overlay is currently confirming against.
+ * Normally this is the real, persistent `cart`. When "Place order" is used
+ * from the Product Detail Screen it's swapped for a throwaway single-item
+ * pseudo-cart instead, so a direct order never touches the user's real bag.
+ */
+let checkoutSource = cart;
+
+/**
+ * Wraps one product as a minimal object matching the same interface the
+ * checkout overlay and confirm handler already expect from the real cart
+ * (getItems / getSubtotal / isEmpty / toCheckoutPayload) — lets "Place order"
+ * reuse the exact same checkout screen without adding anything to the bag.
+ */
+function makeSingleItemCart(product, qty) {
+  return {
+    getItems: () => [{ product, qty }],
+    getSubtotal: () => product.price * qty,
+    isEmpty: () => qty <= 0,
+    toCheckoutPayload: () => [{ id: product.id, qty }]
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Dynamic shipping estimate — mock heuristic, base origin "Delhi, India".
+// Nothing here calls any geocoding API; it just keyword-matches the address
+// text the user types to decide how "far" the delivery is.
+// ---------------------------------------------------------------------------
+
+const NCR_KEYWORDS = [
+  'delhi', 'new delhi', 'ncr', 'gurgaon', 'gurugram', 'noida', 'faridabad',
+  'ghaziabad', 'dwarka', 'rohini', 'connaught place', 'saket', 'karol bagh'
+];
+
+const INDIA_KEYWORDS = [
+  'india', 'mumbai', 'bombay', 'bangalore', 'bengaluru', 'pune', 'hyderabad',
+  'chennai', 'kolkata', 'calcutta', 'ahmedabad', 'jaipur', 'lucknow',
+  'chandigarh', 'surat', 'indore', 'nagpur', 'bhopal', 'patna', 'kochi',
+  'cochin', 'goa', 'kerala', 'punjab', 'haryana', 'rajasthan', 'gujarat',
+  'maharashtra', 'karnataka', 'tamil nadu', 'telangana', 'uttar pradesh',
+  'bihar', 'west bengal'
+];
+
+const INDIA_PINCODE_REGEX = /\b\d{6}\b/;
+
+/**
+ * @param {string} rawAddress — whatever the user has typed so far
+ * @returns {{tier: 'empty'|'local'|'domestic'|'international', amountLabel: string, note: string}}
+ */
+function computeShippingEstimate(rawAddress) {
+  const address = rawAddress.trim().toLowerCase();
+
+  if (!address) {
+    return { tier: 'empty', amountLabel: 'Enter an address', note: '' };
+  }
+
+  if (NCR_KEYWORDS.some((kw) => address.includes(kw))) {
+    return {
+      tier: 'local',
+      amountLabel: '$2.00',
+      note: 'Local Delhi / NCR delivery — arrives in 1–2 days.'
+    };
+  }
+
+  if (INDIA_KEYWORDS.some((kw) => address.includes(kw)) || INDIA_PINCODE_REGEX.test(address)) {
+    return {
+      tier: 'domestic',
+      amountLabel: '$8.00',
+      note: 'Delivery across India — arrives in 3–5 business days.'
+    };
+  }
+
+  return {
+    tier: 'international',
+    amountLabel: '$35.00',
+    note: 'International shipping from Delhi, India — arrives in 7–14 business days.'
+  };
+}
+
 const COLLECTION_LABELS = {
   all: 'Shop all products',
   fall: 'Fall Collection',
@@ -85,6 +167,7 @@ function bindStaticControls() {
 
   ui.el.checkoutBtn.addEventListener('click', () => {
     if (cart.isEmpty()) return;
+    checkoutSource = cart;
     ui.closeCartDrawer();
     ui.openCheckoutOverlay(cart);
   });
@@ -116,6 +199,33 @@ function bindStaticControls() {
     ui.toggleMobileMenu();
   });
 
+  // ---- Product Detail Screen ----
+  ui.el.pdBackBtn.addEventListener('click', () => ui.closeProductDetailOverlay());
+
+  let shippingDebounceTimer = null;
+  ui.el.pdAddressInput.addEventListener('input', () => {
+    clearTimeout(shippingDebounceTimer);
+    shippingDebounceTimer = setTimeout(() => {
+      ui.updateShippingDisplay(computeShippingEstimate(ui.el.pdAddressInput.value));
+    }, 200);
+  });
+
+  ui.el.pdAddToCartBtn.addEventListener('click', () => {
+    if (!currentDetailProduct) return;
+    cart.addItem(currentDetailProduct, 1);
+    ui.showToast(`Added "${currentDetailProduct.name}" to your bag`);
+    ui.closeProductDetailOverlay();
+  });
+
+  ui.el.pdPlaceOrderBtn.addEventListener('click', () => {
+    if (!currentDetailProduct) return;
+    // Dual-path checkout: this skips the cart entirely and goes straight to
+    // the checkout screen for just this one product.
+    checkoutSource = makeSingleItemCart(currentDetailProduct, 1);
+    ui.closeProductDetailOverlay();
+    setTimeout(() => ui.openCheckoutOverlay(checkoutSource), 320);
+  });
+
   // Clicking anywhere outside the dropdown closes it.
   document.addEventListener('click', (e) => {
     if (!ui.el.collectionsDropdown.contains(e.target)) {
@@ -131,6 +241,7 @@ function bindStaticControls() {
     ui.closeStoryOverlay();
     ui.closeCollectionsMenu();
     ui.closeMobileMenu();
+    ui.closeProductDetailOverlay();
   });
 }
 
@@ -163,6 +274,18 @@ function bindDelegatedClicks() {
 
     if (action === 'close-mobile-menu') {
       ui.closeMobileMenu();
+      return;
+    }
+
+    if (action === 'view-product') {
+      const card = actionEl.closest('[data-product-id]');
+      const productId = Number(card.dataset.productId);
+      const product = catalog.get(productId);
+      if (!product) return;
+
+      currentDetailProduct = product;
+      ui.renderProductDetail(product);
+      ui.openProductDetailOverlay();
       return;
     }
 
@@ -202,14 +325,19 @@ function bindDelegatedClicks() {
 // ---------------------------------------------------------------------------
 
 async function handleCheckoutConfirm() {
-  if (cart.isEmpty()) return;
+  if (checkoutSource.isEmpty()) return;
 
   ui.setCheckoutLoading(true);
   try {
-    const order = await submitCheckout(cart.toCheckoutPayload());
+    const order = await submitCheckout(checkoutSource.toCheckoutPayload());
     ui.showCheckoutSuccess(order);
     ui.showToast('Order placed — thank you!');
-    cart.clear();
+    // Only clear the real, persistent cart if that's what we actually
+    // checked out. A direct "Place order" uses a throwaway single-item
+    // pseudo-cart, so the user's real bag is left exactly as it was.
+    if (checkoutSource === cart) {
+      cart.clear();
+    }
   } catch (err) {
     console.error(err);
     ui.showCheckoutError(err.message);

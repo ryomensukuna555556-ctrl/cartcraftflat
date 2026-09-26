@@ -192,7 +192,7 @@
 
   <!-- Card template used by ui.js -->
   <template id="product-card-template">
-    <article class="group flex flex-col overflow-hidden rounded-2xl border border-white/5 bg-ink-900 shadow-premium transition-all duration-300 hover:-translate-y-1 hover:border-white/10">
+    <article data-action="view-product" class="group flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-white/5 bg-ink-900 shadow-premium transition-all duration-300 hover:-translate-y-1 hover:border-white/10">
       <div class="relative aspect-square overflow-hidden bg-ink-800">
         <img data-role="image" src="" alt="" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
         <span data-role="badge" class="absolute left-3 top-3 hidden rounded-full bg-gold-400 px-2.5 py-1 text-[11px] font-semibold text-ink-950 shadow"></span>
@@ -381,6 +381,64 @@
 
       <button id="story-done-btn" class="mt-6 w-full rounded-full border border-white/15 py-3 text-sm font-semibold text-zinc-200 transition-colors hover:bg-white/5">
         Close
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================== PRODUCT DETAIL SCREEN ============================== -->
+  <div id="product-detail-overlay" class="fixed inset-0 z-[65] hidden flex-col overflow-y-auto bg-ink-950 opacity-0 transition-opacity duration-300">
+    <!-- Top bar -->
+    <div class="sticky top-0 z-10 flex items-center gap-3 border-b border-white/5 bg-ink-950/90 px-5 py-4 backdrop-blur-xl sm:px-8">
+      <button id="pd-back-btn" class="flex h-9 w-9 items-center justify-center rounded-full text-zinc-300 transition-colors hover:bg-white/5 hover:text-white" aria-label="Back to shop">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <span class="text-sm font-medium text-zinc-400">Back to shop</span>
+    </div>
+
+    <div class="mx-auto w-full max-w-3xl flex-1 px-5 pb-32 pt-6 sm:px-8">
+      <!-- Image carousel -->
+      <div class="relative -mx-5 sm:mx-0">
+        <div id="pd-carousel-track" class="no-scrollbar flex snap-x snap-mandatory gap-0 overflow-x-auto sm:rounded-2xl"></div>
+        <div id="pd-carousel-dots" class="pointer-events-none absolute inset-x-0 bottom-3 flex items-center justify-center gap-1.5"></div>
+      </div>
+
+      <!-- Title / meta -->
+      <div class="mt-6 flex items-center justify-between">
+        <span id="pd-category" class="text-[11px] font-semibold uppercase tracking-wider text-gold-400"></span>
+        <span id="pd-rating" class="text-xs text-zinc-500"></span>
+      </div>
+      <h1 id="pd-name" class="mt-1 font-display text-2xl font-semibold text-white sm:text-3xl"></h1>
+      <p id="pd-price" class="mt-2 text-2xl font-semibold text-gold-300"></p>
+
+      <!-- Detailed description -->
+      <div id="pd-description" class="mt-5 space-y-3 text-sm leading-relaxed text-zinc-400"></div>
+
+      <!-- Delivery address + dynamic shipping -->
+      <div class="mt-8 rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+        <label for="pd-address-input" class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Delivery address</label>
+        <input
+          id="pd-address-input"
+          type="text"
+          placeholder="e.g. Connaught Place, New Delhi"
+          autocomplete="off"
+          class="mt-2 w-full rounded-xl border border-white/10 bg-ink-950 px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-gold-400 focus:outline-none"
+        />
+        <p class="mt-2 text-[11px] text-zinc-600">Shipping from our warehouse in Delhi, India</p>
+        <div class="mt-4 flex items-center justify-between border-t border-white/5 pt-4 text-sm">
+          <span class="text-zinc-400">Estimated shipping</span>
+          <span id="pd-shipping-price" class="font-semibold text-white">Enter an address</span>
+        </div>
+        <p id="pd-shipping-note" class="mt-1 text-xs text-zinc-500"></p>
+      </div>
+    </div>
+
+    <!-- Dual-path action bar -->
+    <div class="sticky bottom-0 z-10 flex gap-3 border-t border-white/5 bg-ink-950/95 p-4 backdrop-blur-xl sm:px-8">
+      <button id="pd-add-to-cart-btn" class="flex-1 rounded-full border border-white/15 py-3.5 text-sm font-semibold text-zinc-200 transition-colors hover:bg-white/5">
+        Add to cart
+      </button>
+      <button id="pd-place-order-btn" class="flex-1 rounded-full bg-gold-400 py-3.5 text-sm font-semibold text-ink-950 shadow-glow transition-transform hover:scale-[1.02] active:scale-95">
+        Place order
       </button>
     </div>
   </div>

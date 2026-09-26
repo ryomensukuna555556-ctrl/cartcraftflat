@@ -28,6 +28,21 @@ const el = {
   mobileMenuIconOpen: document.getElementById('mobile-menu-icon-open'),
   mobileMenuIconClose: document.getElementById('mobile-menu-icon-close'),
 
+  productDetailOverlay: document.getElementById('product-detail-overlay'),
+  pdBackBtn: document.getElementById('pd-back-btn'),
+  pdCarouselTrack: document.getElementById('pd-carousel-track'),
+  pdCarouselDots: document.getElementById('pd-carousel-dots'),
+  pdCategory: document.getElementById('pd-category'),
+  pdRating: document.getElementById('pd-rating'),
+  pdName: document.getElementById('pd-name'),
+  pdPrice: document.getElementById('pd-price'),
+  pdDescription: document.getElementById('pd-description'),
+  pdAddressInput: document.getElementById('pd-address-input'),
+  pdShippingPrice: document.getElementById('pd-shipping-price'),
+  pdShippingNote: document.getElementById('pd-shipping-note'),
+  pdAddToCartBtn: document.getElementById('pd-add-to-cart-btn'),
+  pdPlaceOrderBtn: document.getElementById('pd-place-order-btn'),
+
   cartToggleBtn: document.getElementById('cart-toggle-btn'),
   cartCloseBtn: document.getElementById('cart-close-btn'),
   cartOverlay: document.getElementById('cart-overlay'),
@@ -375,6 +390,110 @@ export function toggleMobileMenu() {
   } else {
     closeMobileMenu();
   }
+}
+
+// ---------------------------------------------------------------------------
+// Product Detail Screen
+// ---------------------------------------------------------------------------
+
+const DETAIL_IMAGE_COUNT = 4;
+
+const COLLECTION_LABELS_UI = {
+  fall: 'Fall',
+  summer: 'Summer',
+  winter: 'Winter'
+};
+
+const SHIPPING_TIER_COLOR = {
+  empty: 'text-white',
+  local: 'text-emerald-400',
+  domestic: 'text-amber-300',
+  international: 'text-rose-300'
+};
+
+/** Populate the detail screen for one product: carousel, copy, and a fresh
+ *  (empty) address/shipping state. Does not open the overlay itself. */
+export function renderProductDetail(product) {
+  el.pdCategory.textContent = product.category;
+  el.pdRating.textContent = product.rating ? `★ ${product.rating} rating` : '';
+  el.pdName.textContent = product.name;
+  el.pdPrice.textContent = money(product.price);
+
+  // Detailed mock description — the real product copy plus a couple of
+  // generated paragraphs, so the detail screen reads like a full PDP
+  // without needing any new backend fields.
+  el.pdDescription.innerHTML = '';
+  const paragraphs = [
+    product.description,
+    `Part of our ${COLLECTION_LABELS_UI[product.collection] || 'core'} collection, finished by hand and inspected individually before it ships. Rated ${product.rating} / 5 by early customers.`,
+    'Care: wipe clean with a soft, dry cloth. Avoid prolonged direct sunlight and moisture exposure.'
+  ];
+  paragraphs.forEach((text) => {
+    const p = document.createElement('p');
+    p.textContent = text;
+    el.pdDescription.appendChild(p);
+  });
+
+  // Image carousel — 4 deterministic mock angles derived from the product's
+  // own id, so the same "photos" show up every time without new backend data.
+  el.pdCarouselTrack.innerHTML = '';
+  el.pdCarouselDots.innerHTML = '';
+  for (let i = 1; i <= DETAIL_IMAGE_COUNT; i++) {
+    const img = document.createElement('img');
+    img.src = `https://picsum.photos/seed/cartcraft-detail-${product.id}-${i}/800/800`;
+    img.alt = `${product.name} — photo ${i} of ${DETAIL_IMAGE_COUNT}`;
+    img.loading = 'lazy';
+    img.className = 'aspect-square w-full flex-shrink-0 snap-center object-cover';
+    el.pdCarouselTrack.appendChild(img);
+
+    const dot = document.createElement('span');
+    dot.className = `h-1.5 w-1.5 rounded-full transition-colors ${i === 1 ? 'bg-white' : 'bg-white/30'}`;
+    el.pdCarouselDots.appendChild(dot);
+  }
+  el.pdCarouselTrack.scrollTo({ left: 0 });
+
+  // Reset delivery address + shipping estimate for the new product.
+  el.pdAddressInput.value = '';
+  updateShippingDisplay({ tier: 'empty', amountLabel: 'Enter an address', note: '' });
+}
+
+/** Keep the carousel's dot indicator in sync as the user swipes/scrolls. */
+el.pdCarouselTrack.addEventListener(
+  'scroll',
+  () => {
+    const slideWidth = el.pdCarouselTrack.clientWidth || 1;
+    const activeIndex = Math.round(el.pdCarouselTrack.scrollLeft / slideWidth);
+    el.pdCarouselDots.querySelectorAll('span').forEach((dot, i) => {
+      dot.classList.toggle('bg-white', i === activeIndex);
+      dot.classList.toggle('bg-white/30', i !== activeIndex);
+    });
+  },
+  { passive: true }
+);
+
+/** Update the mock, address-driven shipping estimate shown on the detail screen. */
+export function updateShippingDisplay({ tier, amountLabel, note }) {
+  el.pdShippingPrice.textContent = amountLabel;
+  el.pdShippingNote.textContent = note;
+  Object.values(SHIPPING_TIER_COLOR).forEach((cls) => el.pdShippingPrice.classList.remove(cls));
+  el.pdShippingPrice.classList.add(SHIPPING_TIER_COLOR[tier] || 'text-white');
+}
+
+export function openProductDetailOverlay() {
+  el.productDetailOverlay.classList.remove('hidden');
+  el.productDetailOverlay.classList.add('flex');
+  el.productDetailOverlay.scrollTop = 0;
+  document.body.style.overflow = 'hidden';
+  requestAnimationFrame(() => el.productDetailOverlay.classList.remove('opacity-0'));
+}
+
+export function closeProductDetailOverlay() {
+  el.productDetailOverlay.classList.add('opacity-0');
+  document.body.style.overflow = '';
+  setTimeout(() => {
+    el.productDetailOverlay.classList.add('hidden');
+    el.productDetailOverlay.classList.remove('flex');
+  }, 300);
 }
 
 // ---------------------------------------------------------------------------
