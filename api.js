@@ -20,13 +20,21 @@ export async function fetchProducts() {
 /**
  * Submit the current cart to the mock checkout endpoint.
  * @param {Array<{id:number, qty:number}>} items
+ * @param {number} [shippingOverride] — an address-based shipping amount to use
+ *   instead of the server's default flat-rate rule (see computeShippingEstimate
+ *   in main.js). Omit to let the server fall back to its own default.
  * @returns {Promise<Object>} order confirmation payload
  */
-export async function submitCheckout(items) {
+export async function submitCheckout(items, shippingOverride) {
+  const body = { items };
+  if (typeof shippingOverride === 'number') {
+    body.shipping = shippingOverride;
+  }
+
   const res = await fetch(`${BASE_URL}/api/checkout`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ items })
+    body: JSON.stringify(body)
   });
 
   const data = await res.json().catch(() => ({}));

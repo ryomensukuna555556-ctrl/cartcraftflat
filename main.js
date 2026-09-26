@@ -67,38 +67,67 @@ const INDIA_KEYWORDS = [
 
 const INDIA_PINCODE_REGEX = /\b\d{6}\b/;
 
+/** The most recent non-empty shipping estimate the user has typed an address
+ *  for — reused at checkout (both paths) so the number shown there always
+ *  matches what was shown on the product page, instead of the old flat
+ *  $12/free-over-$200 placeholder logic. Null until an address is entered. */
+let lastShippingEstimate = null;
+
+/** Each additional unit beyond the first adds this fraction of the base
+ *  per-tier rate — reflects that shipping several items together costs more
+ *  than one, but not a full extra base fee per item (box consolidation). */
+const EXTRA_UNIT_RATE = 0.4;
+
 /**
  * @param {string} rawAddress — whatever the user has typed so far
- * @returns {{tier: 'empty'|'local'|'domestic'|'international', amountLabel: string, note: string}}
+ * @param {number} [qty] — total number of units being shipped (defaults to 1,
+ *   used by the single-product detail screen; the cart checkout flow passes
+ *   the real total quantity across every line item)
+ * @returns {{tier: 'empty'|'local'|'domestic'|'international', amount: number|null, amountLabel: string, note: string}}
  */
-function computeShippingEstimate(rawAddress) {
+function computeShippingEstimate(rawAddress, qty = 1) {
   const address = rawAddress.trim().toLowerCase();
+  const units = Math.max(1, qty);
+  const itemsPhrase = units === 1 ? '1 item' : `${units} items`;
 
   if (!address) {
-    return { tier: 'empty', amountLabel: 'Enter an address', note: '' };
+    return { tier: 'empty', amount: null, amountLabel: 'Enter an address', note: '' };
   }
 
+  const scale = (base) => Number((base * (1 + (units - 1) * EXTRA_UNIT_RATE)).toFixed(2));
+
   if (NCR_KEYWORDS.some((kw) => address.includes(kw))) {
+    const amount = scale(2.0);
     return {
       tier: 'local',
-      amountLabel: '$2.00',
-      note: 'Local Delhi / NCR delivery — arrives in 1–2 days.'
+      amount,
+      amountLabel: `$${amount.toFixed(2)}`,
+      note: `Local Delhi / NCR delivery for ${itemsPhrase} — arrives in 1–2 days.`
     };
   }
 
   if (INDIA_KEYWORDS.some((kw) => address.includes(kw)) || INDIA_PINCODE_REGEX.test(address)) {
+    const amount = scale(8.0);
     return {
       tier: 'domestic',
-      amountLabel: '$8.00',
-      note: 'Delivery across India — arrives in 3–5 business days.'
+      amount,
+      amountLabel: `$${amount.toFixed(2)}`,
+      note: `Delivery across India for ${itemsPhrase} — arrives in 3–5 business days.`
     };
   }
 
+  const amount = scale(35.0);
   return {
     tier: 'international',
-    amountLabel: '$35.00',
-    note: 'International shipping from Delhi, India — arrives in 7–14 business days.'
+    amount,
+    amountLabel: `$${amount.toFixed(2)}`,
+    note: `International shipping for ${itemsPhrase} from Delhi, India — arrives in 7–14 business days.`
   };
+}
+
+/** Total number of units across every line item in a cart-like object. */
+function getTotalQty(cartLike) {
+  return cartLike.getItems().reduce((sum, { qty }) => sum + qty, 0);
 }
 
 const COLLECTION_LABELS = {
@@ -169,12 +198,34 @@ function bindStaticControls() {
     if (cart.isEmpty()) return;
     checkoutSource = cart;
     ui.closeCartDrawer();
-    ui.openCheckoutOverlay(cart);
+    ui.openCheckoutAddressScreen(cart);
   });
 
   ui.el.checkoutCloseBtn.addEventListener('click', () => ui.closeCheckoutOverlay());
+  ui.el.checkoutAddressCloseBtn.addEventListener('click', () => ui.closeCheckoutOverlay());
   ui.el.checkoutOverlay.addEventListener('click', (e) => {
     if (e.target === ui.el.checkoutOverlay) ui.closeCheckoutOverlay();
+  });
+
+  let checkoutAddressDebounceTimer = null;
+  ui.el.checkoutAddressInput.addEventListener('input', () => {
+    clearTimeout(checkoutAddressDebounceTimer);
+    checkoutAddressDebounceTimer = setTimeout(() => {
+      const estimate = computeShippingEstimate(ui.el.checkoutAddressInput.value, getTotalQty(checkoutSource));
+      ui.updateCheckoutAddressShippingDisplay(estimate);
+    }, 200);
+  });
+
+  ui.el.checkoutAddressContinueBtn.addEventListener('click', () => {
+    const estimate = computeShippingEstimate(ui.el.checkoutAddressInput.value, getTotalQty(checkoutSource));
+    if (estimate.tier === 'empty') {
+      ui.updateCheckoutAddressShippingDisplay(estimate);
+      ui.el.checkoutAddressInput.focus();
+      ui.showToast('Please enter a delivery address to continue.', 'error');
+      return;
+    }
+    lastShippingEstimate = estimate;
+    ui.openCheckoutOverlay(checkoutSource, lastShippingEstimate);
   });
 
   ui.el.checkoutConfirmBtn.addEventListener('click', handleCheckoutConfirm);
@@ -206,7 +257,11 @@ function bindStaticControls() {
   ui.el.pdAddressInput.addEventListener('input', () => {
     clearTimeout(shippingDebounceTimer);
     shippingDebounceTimer = setTimeout(() => {
-      ui.updateShippingDisplay(computeShippingEstimate(ui.el.pdAddressInput.value));
+      const estimate = computeShippingEstimate(ui.el.pdAddressInput.value);
+      ui.updateShippingDisplay(estimate);
+      if (estimate.tier !== 'empty') {
+        lastShippingEstimate = estimate;
+      }
     }, 200);
   });
 
@@ -219,11 +274,18 @@ function bindStaticControls() {
 
   ui.el.pdPlaceOrderBtn.addEventListener('click', () => {
     if (!currentDetailProduct) return;
+    // Recompute directly from the current input value (rather than relying
+    // on the debounced handler having already fired) so the number carried
+    // into checkout always matches what's on screen right now.
+    const freshEstimate = computeShippingEstimate(ui.el.pdAddressInput.value);
+    if (freshEstimate.tier !== 'empty') {
+      lastShippingEstimate = freshEstimate;
+    }
     // Dual-path checkout: this skips the cart entirely and goes straight to
     // the checkout screen for just this one product.
     checkoutSource = makeSingleItemCart(currentDetailProduct, 1);
     ui.closeProductDetailOverlay();
-    setTimeout(() => ui.openCheckoutOverlay(checkoutSource), 320);
+    setTimeout(() => ui.openCheckoutOverlay(checkoutSource, lastShippingEstimate), 320);
   });
 
   // Clicking anywhere outside the dropdown closes it.
@@ -329,7 +391,9 @@ async function handleCheckoutConfirm() {
 
   ui.setCheckoutLoading(true);
   try {
-    const order = await submitCheckout(checkoutSource.toCheckoutPayload());
+    const shippingAmount =
+      lastShippingEstimate && typeof lastShippingEstimate.amount === 'number' ? lastShippingEstimate.amount : undefined;
+    const order = await submitCheckout(checkoutSource.toCheckoutPayload(), shippingAmount);
     ui.showCheckoutSuccess(order);
     ui.showToast('Order placed — thank you!');
     // Only clear the real, persistent cart if that's what we actually

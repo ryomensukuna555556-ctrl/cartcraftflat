@@ -263,7 +263,7 @@ app.get('/api/products/:id', (req, res) => {
 // The server re-derives prices from the mock DB (never trusts client totals),
 // simulates a short processing delay, and returns an order confirmation.
 app.post('/api/checkout', (req, res) => {
-  const { items } = req.body;
+  const { items, shipping: shippingOverride } = req.body;
 
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ success: false, message: 'Your cart is empty.' });
@@ -291,7 +291,12 @@ app.post('/api/checkout', (req, res) => {
     return res.status(400).json({ success: false, message: 'No valid items found in cart.' });
   }
 
-  const shipping = subtotal > 200 ? 0 : 12.0;
+  // If the client already showed the customer an address-based shipping
+  // estimate (see computeShippingEstimate in main.js), honor that exact
+  // number here so the final confirmed total matches what they agreed to.
+  // Otherwise fall back to the original flat-rate placeholder rule.
+  const shipping =
+    typeof shippingOverride === 'number' && shippingOverride >= 0 ? shippingOverride : subtotal > 200 ? 0 : 12.0;
   const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax;
 

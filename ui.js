@@ -32,6 +32,8 @@ const el = {
   pdBackBtn: document.getElementById('pd-back-btn'),
   pdCarouselTrack: document.getElementById('pd-carousel-track'),
   pdCarouselDots: document.getElementById('pd-carousel-dots'),
+  pdCarouselPrevBtn: document.getElementById('pd-carousel-prev-btn'),
+  pdCarouselNextBtn: document.getElementById('pd-carousel-next-btn'),
   pdCategory: document.getElementById('pd-category'),
   pdRating: document.getElementById('pd-rating'),
   pdName: document.getElementById('pd-name'),
@@ -59,6 +61,12 @@ const el = {
   checkoutOverlay: document.getElementById('checkout-overlay'),
   checkoutModal: document.getElementById('checkout-modal'),
   checkoutCloseBtn: document.getElementById('checkout-close-btn'),
+  checkoutAddressView: document.getElementById('checkout-address-view'),
+  checkoutAddressCloseBtn: document.getElementById('checkout-address-close-btn'),
+  checkoutAddressInput: document.getElementById('checkout-address-input'),
+  checkoutAddressShippingPrice: document.getElementById('checkout-address-shipping-price'),
+  checkoutAddressShippingNote: document.getElementById('checkout-address-shipping-note'),
+  checkoutAddressContinueBtn: document.getElementById('checkout-address-continue-btn'),
   checkoutSummaryView: document.getElementById('checkout-summary-view'),
   checkoutSuccessView: document.getElementById('checkout-success-view'),
   checkoutSummaryItems: document.getElementById('checkout-summary-items'),
@@ -240,14 +248,69 @@ const SHIPPING_THRESHOLD = 200;
 const FLAT_SHIPPING = 12;
 const TAX_RATE = 0.08;
 
-function estimateTotals(subtotal) {
-  const shipping = subtotal > SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING;
+function estimateTotals(subtotal, shippingEstimate) {
+  const shipping =
+    shippingEstimate && typeof shippingEstimate.amount === 'number'
+      ? shippingEstimate.amount
+      : subtotal > SHIPPING_THRESHOLD
+      ? 0
+      : FLAT_SHIPPING;
   const tax = subtotal * TAX_RATE;
   return { shipping, tax, total: subtotal + shipping + tax };
 }
 
-/** Populate and open the checkout summary (step 1) view. */
-export function openCheckoutOverlay(cart) {
+/**
+ * Populate and open the checkout summary (step 1) view.
+ * @param {Object} cart — anything with getItems()/getSubtotal() (the real cart, or a single-item pseudo-cart)
+ * @param {Object|null} [shippingEstimate] — the address-based estimate from the product detail
+ *   screen (see computeShippingEstimate in main.js). When provided, its number and label are
+ *   used verbatim so the figure shown here always matches what the user saw on the product page.
+ *   When null/omitted, falls back to the original flat-rate placeholder logic.
+ */
+/**
+ * Open the checkout overlay at its first step — the delivery address screen —
+ * for the normal cart-checkout flow. Resets the address input and shipping
+ * preview to a blank state each time it opens.
+ * @param {Object} cart — anything with getItems()/getSubtotal()
+ */
+export function openCheckoutAddressScreen(cart) {
+  el.checkoutAddressView.classList.remove('hidden');
+  el.checkoutSummaryView.classList.add('hidden');
+  el.checkoutSummaryView.classList.remove('block');
+  el.checkoutSuccessView.classList.add('hidden');
+  el.checkoutSuccessView.classList.remove('flex');
+
+  el.checkoutAddressInput.value = '';
+  updateCheckoutAddressShippingDisplay({ tier: 'empty', amountLabel: 'Enter an address', note: '' });
+
+  el.checkoutOverlay.classList.remove('hidden');
+  el.checkoutOverlay.classList.add('flex');
+  requestAnimationFrame(() => {
+    el.checkoutOverlay.classList.remove('opacity-0');
+    el.checkoutModal.classList.remove('scale-95');
+  });
+}
+
+/** Update the live shipping preview shown on the checkout address step. */
+export function updateCheckoutAddressShippingDisplay({ tier, amountLabel, note }) {
+  el.checkoutAddressShippingPrice.textContent = amountLabel;
+  el.checkoutAddressShippingNote.textContent = note;
+  Object.values(SHIPPING_TIER_COLOR).forEach((cls) => el.checkoutAddressShippingPrice.classList.remove(cls));
+  el.checkoutAddressShippingPrice.classList.add(SHIPPING_TIER_COLOR[tier] || 'text-white');
+}
+
+/**
+ * Populate and show the checkout summary (step 2) view — either advancing
+ * from the address step above, or opening directly (the "Place order" fast
+ * path from the product detail screen, which already has its own address).
+ * @param {Object} cart — anything with getItems()/getSubtotal() (the real cart, or a single-item pseudo-cart)
+ * @param {Object|null} [shippingEstimate] — the address-based estimate from the checkout address step
+ *   or the product detail screen (see computeShippingEstimate in main.js). When provided, its number
+ *   and label are used verbatim so the figure shown here always matches what the user already saw.
+ *   When null/omitted, falls back to the original flat-rate placeholder logic.
+ */
+export function openCheckoutOverlay(cart, shippingEstimate = null) {
+  el.checkoutAddressView.classList.add('hidden');
   el.checkoutSummaryView.classList.remove('hidden');
   el.checkoutSummaryView.classList.add('block');
   el.checkoutSuccessView.classList.add('hidden');
@@ -264,10 +327,15 @@ export function openCheckoutOverlay(cart) {
   });
 
   const subtotal = cart.getSubtotal();
-  const { shipping, tax, total } = estimateTotals(subtotal);
+  const { shipping, tax, total } = estimateTotals(subtotal, shippingEstimate);
 
   el.checkoutSubtotal.textContent = money(subtotal);
-  el.checkoutShippingEstimate.textContent = shipping === 0 ? 'Free' : money(shipping);
+  el.checkoutShippingEstimate.textContent =
+    shippingEstimate && typeof shippingEstimate.amount === 'number'
+      ? shippingEstimate.amountLabel
+      : shipping === 0
+      ? 'Free'
+      : money(shipping);
   el.checkoutTaxEstimate.textContent = money(tax);
   el.checkoutTotalEstimate.textContent = money(total);
 
@@ -447,7 +515,9 @@ export function renderProductDetail(product) {
     el.pdCarouselTrack.appendChild(img);
 
     const dot = document.createElement('span');
-    dot.className = `h-1.5 w-1.5 rounded-full transition-colors ${i === 1 ? 'bg-white' : 'bg-white/30'}`;
+    dot.className = `pointer-events-auto h-1.5 w-1.5 cursor-pointer rounded-full transition-colors ${i === 1 ? 'bg-white' : 'bg-white/30'}`;
+    dot.dataset.slideIndex = i - 1;
+    dot.addEventListener('click', () => scrollToSlide(i - 1));
     el.pdCarouselDots.appendChild(dot);
   }
   el.pdCarouselTrack.scrollTo({ left: 0 });
@@ -456,6 +526,28 @@ export function renderProductDetail(product) {
   el.pdAddressInput.value = '';
   updateShippingDisplay({ tier: 'empty', amountLabel: 'Enter an address', note: '' });
 }
+
+/** Scroll the carousel track to a given slide index (used by dots + arrows). */
+function scrollToSlide(index) {
+  const slideWidth = el.pdCarouselTrack.clientWidth || 1;
+  const maxIndex = el.pdCarouselTrack.children.length - 1;
+  const clamped = Math.max(0, Math.min(maxIndex, index));
+  el.pdCarouselTrack.scrollTo({ left: clamped * slideWidth, behavior: 'smooth' });
+}
+
+/** Desktop/mouse navigation arrows — touch/swipe already works on mobile,
+ *  but a mouse has no equivalent gesture. */
+el.pdCarouselPrevBtn.addEventListener('click', () => {
+  const slideWidth = el.pdCarouselTrack.clientWidth || 1;
+  const currentIndex = Math.round(el.pdCarouselTrack.scrollLeft / slideWidth);
+  scrollToSlide(currentIndex - 1);
+});
+
+el.pdCarouselNextBtn.addEventListener('click', () => {
+  const slideWidth = el.pdCarouselTrack.clientWidth || 1;
+  const currentIndex = Math.round(el.pdCarouselTrack.scrollLeft / slideWidth);
+  scrollToSlide(currentIndex + 1);
+});
 
 /** Keep the carousel's dot indicator in sync as the user swipes/scrolls. */
 el.pdCarouselTrack.addEventListener(
