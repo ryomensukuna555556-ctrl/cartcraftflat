@@ -111,6 +111,11 @@ function bindStaticControls() {
     ui.toggleCollectionsMenu();
   });
 
+  ui.el.mobileMenuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    ui.toggleMobileMenu();
+  });
+
   // Clicking anywhere outside the dropdown closes it.
   document.addEventListener('click', (e) => {
     if (!ui.el.collectionsDropdown.contains(e.target)) {
@@ -125,6 +130,7 @@ function bindStaticControls() {
     ui.closeCheckoutOverlay();
     ui.closeStoryOverlay();
     ui.closeCollectionsMenu();
+    ui.closeMobileMenu();
   });
 }
 
@@ -144,12 +150,19 @@ function bindDelegatedClicks() {
     if (action === 'open-story') {
       e.preventDefault();
       ui.openStoryOverlay();
+      ui.closeMobileMenu();
       return;
     }
 
     if (action === 'select-collection') {
       applyCollectionFilter(actionEl.dataset.collection);
       ui.closeCollectionsMenu();
+      ui.closeMobileMenu();
+      return;
+    }
+
+    if (action === 'close-mobile-menu') {
+      ui.closeMobileMenu();
       return;
     }
 

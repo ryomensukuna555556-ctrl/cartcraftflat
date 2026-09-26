@@ -105,7 +105,39 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
           <span id="cart-count" class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gold-400 text-[11px] font-bold text-ink-950 opacity-0 scale-75 transition-all duration-200">0</span>
         </button>
+
+        <!-- Mobile menu trigger (nav is hidden below md, this replaces it) -->
+        <button id="mobile-menu-btn" type="button" class="flex h-10 w-10 items-center justify-center rounded-full text-zinc-300 transition-colors hover:bg-white/5 hover:text-white md:hidden" aria-label="Open menu" aria-expanded="false">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" id="mobile-menu-icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" class="hidden h-5 w-5" id="mobile-menu-icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
       </div>
+    </div>
+
+    <!-- ============================== MOBILE MENU PANEL ============================== -->
+    <div id="mobile-menu" class="hidden border-t border-white/5 bg-ink-950 px-6 py-4 md:hidden">
+      <nav class="flex flex-col gap-1 text-sm font-medium text-zinc-300">
+        <a href="#shop" data-action="close-mobile-menu" class="rounded-xl px-3 py-3 transition-colors hover:bg-white/5 hover:text-white">Shop</a>
+
+        <p class="mt-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Collections</p>
+        <button type="button" data-action="select-collection" data-collection="fall" class="collection-option flex w-full items-center justify-between rounded-xl px-3 py-3 text-left transition-colors hover:bg-white/5 hover:text-white">
+          Fall Collection
+          <span class="h-1.5 w-1.5 rounded-full bg-gold-400"></span>
+        </button>
+        <button type="button" data-action="select-collection" data-collection="summer" class="collection-option flex w-full items-center rounded-xl px-3 py-3 text-left transition-colors hover:bg-white/5 hover:text-white">
+          Summer Collection
+        </button>
+        <button type="button" data-action="select-collection" data-collection="winter" class="collection-option flex w-full items-center rounded-xl px-3 py-3 text-left transition-colors hover:bg-white/5 hover:text-white">
+          Winter Collection
+        </button>
+        <button type="button" data-action="select-collection" data-collection="all" class="collection-option flex w-full items-center rounded-xl px-3 py-3 text-left font-semibold text-gold-300 transition-colors hover:bg-white/5">
+          Show all
+        </button>
+
+        <div class="my-2 border-t border-white/5"></div>
+        <a href="#" data-action="open-story" class="rounded-xl px-3 py-3 transition-colors hover:bg-white/5 hover:text-white">Journal</a>
+        <a href="#" data-action="close-mobile-menu" class="rounded-xl px-3 py-3 transition-colors hover:bg-white/5 hover:text-white">About</a>
+      </nav>
     </div>
   </header>
 
@@ -144,12 +176,12 @@
     </div>
 
     <!-- Loading skeleton -->
-    <div id="product-skeleton" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div id="product-skeleton" class="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
       <!-- JS clones this cell to build a skeleton grid while fetching -->
     </div>
 
     <!-- Product grid (populated by JS) -->
-    <div id="product-grid" class="hidden grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
+    <div id="product-grid" class="hidden grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4"></div>
 
     <!-- Empty / error state -->
     <div id="product-error" class="hidden flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/[0.02] py-20 text-center">
@@ -168,13 +200,13 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
         </button>
       </div>
-      <div class="flex flex-1 flex-col gap-1.5 p-4">
+      <div class="flex flex-1 flex-col gap-1.5 p-3 sm:p-4">
         <span data-role="category" class="text-[11px] font-semibold uppercase tracking-wider text-gold-400"></span>
         <h3 data-role="name" class="font-display text-[15px] font-medium leading-snug text-white"></h3>
         <p data-role="description" class="line-clamp-2 text-xs text-zinc-500"></p>
-        <div class="mt-2 flex items-center justify-between pt-1">
+        <div class="mt-2 flex flex-col gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between">
           <span data-role="price" class="text-base font-semibold text-white"></span>
-          <button data-role="add-btn" class="rounded-full border border-white/15 px-3.5 py-1.5 text-xs font-semibold text-zinc-200 transition-colors hover:bg-gold-400 hover:text-ink-950 hover:border-gold-400">
+          <button data-role="add-btn" class="w-full rounded-full border border-white/15 px-3.5 py-1.5 text-xs font-semibold text-zinc-200 transition-colors hover:bg-gold-400 hover:text-ink-950 hover:border-gold-400 sm:w-auto">
             Add to cart
           </button>
         </div>

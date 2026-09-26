@@ -23,6 +23,11 @@ const el = {
   collectionsMenu: document.getElementById('collections-menu'),
   collectionsChevron: document.getElementById('collections-chevron'),
 
+  mobileMenuBtn: document.getElementById('mobile-menu-btn'),
+  mobileMenu: document.getElementById('mobile-menu'),
+  mobileMenuIconOpen: document.getElementById('mobile-menu-icon-open'),
+  mobileMenuIconClose: document.getElementById('mobile-menu-icon-close'),
+
   cartToggleBtn: document.getElementById('cart-toggle-btn'),
   cartCloseBtn: document.getElementById('cart-close-btn'),
   cartOverlay: document.getElementById('cart-overlay'),
@@ -336,13 +341,40 @@ export function toggleCollectionsMenu() {
   }
 }
 
-/** Highlight whichever collection option matches the current filter. */
+/** Highlight whichever collection option matches the current filter, in
+ *  BOTH the desktop dropdown and the mobile menu (they share a class). */
 export function markActiveCollection(collectionId) {
-  el.collectionsMenu.querySelectorAll('.collection-option').forEach((btn) => {
+  document.querySelectorAll('.collection-option').forEach((btn) => {
     const isActive = btn.dataset.collection === collectionId;
     btn.classList.toggle('bg-white/5', isActive);
     btn.classList.toggle('text-white', isActive);
   });
+}
+
+// ---------------------------------------------------------------------------
+// Mobile menu (hamburger panel — replaces the desktop nav below the md breakpoint)
+// ---------------------------------------------------------------------------
+
+export function openMobileMenu() {
+  el.mobileMenu.classList.remove('hidden');
+  el.mobileMenuBtn.setAttribute('aria-expanded', 'true');
+  el.mobileMenuIconOpen.classList.add('hidden');
+  el.mobileMenuIconClose.classList.remove('hidden');
+}
+
+export function closeMobileMenu() {
+  el.mobileMenu.classList.add('hidden');
+  el.mobileMenuBtn.setAttribute('aria-expanded', 'false');
+  el.mobileMenuIconOpen.classList.remove('hidden');
+  el.mobileMenuIconClose.classList.add('hidden');
+}
+
+export function toggleMobileMenu() {
+  if (el.mobileMenu.classList.contains('hidden')) {
+    openMobileMenu();
+  } else {
+    closeMobileMenu();
+  }
 }
 
 // ---------------------------------------------------------------------------
