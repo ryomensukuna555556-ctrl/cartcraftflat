@@ -68,7 +68,28 @@
       <!-- Nav (decorative) -->
       <nav class="hidden items-center gap-8 text-sm font-medium text-zinc-400 md:flex">
         <a href="#shop" class="transition-colors hover:text-white">Shop</a>
-        <a href="#" class="transition-colors hover:text-white">Collections</a>
+        <div class="relative" id="collections-dropdown">
+          <button id="collections-toggle-btn" type="button" class="flex items-center gap-1 transition-colors hover:text-white" aria-haspopup="true" aria-expanded="false">
+            Collections
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 transition-transform" id="collections-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div id="collections-menu" class="absolute left-1/2 top-full z-30 mt-3 hidden w-56 -translate-x-1/2 rounded-2xl border border-white/10 bg-ink-900 p-1.5 shadow-premium">
+            <button type="button" data-action="select-collection" data-collection="fall" class="collection-option flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm text-zinc-300 transition-colors hover:bg-white/5 hover:text-white">
+              Fall Collection
+              <span class="h-1.5 w-1.5 rounded-full bg-gold-400"></span>
+            </button>
+            <button type="button" data-action="select-collection" data-collection="summer" class="collection-option flex w-full items-center rounded-xl px-3 py-2.5 text-left text-sm text-zinc-300 transition-colors hover:bg-white/5 hover:text-white">
+              Summer Collection
+            </button>
+            <button type="button" data-action="select-collection" data-collection="winter" class="collection-option flex w-full items-center rounded-xl px-3 py-2.5 text-left text-sm text-zinc-300 transition-colors hover:bg-white/5 hover:text-white">
+              Winter Collection
+            </button>
+            <div class="my-1.5 border-t border-white/5"></div>
+            <button type="button" data-action="select-collection" data-collection="all" class="collection-option flex w-full items-center rounded-xl px-3 py-2.5 text-left text-sm font-medium text-gold-300 transition-colors hover:bg-white/5">
+              Show all
+            </button>
+          </div>
+        </div>
         <a href="#" id="journal-link" data-action="open-story" class="transition-colors hover:text-white">Journal</a>
         <a href="#" class="transition-colors hover:text-white">About</a>
       </nav>
@@ -117,7 +138,7 @@
   <main id="shop" class="mx-auto max-w-7xl px-6 py-16 lg:px-8 lg:py-20">
     <div class="mb-10 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h2 class="font-display text-2xl font-semibold text-white sm:text-3xl">Shop all products</h2>
+        <h2 id="shop-heading" class="font-display text-2xl font-semibold text-white sm:text-3xl">Shop all products</h2>
         <p class="mt-1 text-sm text-zinc-500" id="product-count-label">Loading products…</p>
       </div>
     </div>

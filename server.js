@@ -31,10 +31,12 @@ app.use(express.static(__dirname));
 // the route logic below.
 // ---------------------------------------------------------------------------
 const products = [
+  // ---- Fall Collection (original catalog) ----
   {
     id: 1,
     name: 'Aether Wireless Headphones',
     category: 'Audio',
+    collection: 'fall',
     price: 249.0,
     rating: 4.8,
     description: 'Studio-grade over-ear headphones with adaptive noise cancellation and 40-hour battery life.',
@@ -45,6 +47,7 @@ const products = [
     id: 2,
     name: 'Chronos Smart Watch',
     category: 'Wearables',
+    collection: 'fall',
     price: 399.0,
     rating: 4.6,
     description: 'Titanium-cased smartwatch with always-on display, ECG sensor, and 10-day battery.',
@@ -55,6 +58,7 @@ const products = [
     id: 3,
     name: 'Voyager Leather Backpack',
     category: 'Bags',
+    collection: 'fall',
     price: 189.0,
     rating: 4.9,
     description: 'Full-grain leather backpack with padded 16" laptop sleeve and weatherproof lining.',
@@ -65,6 +69,7 @@ const products = [
     id: 4,
     name: 'Stride Runner Sneakers',
     category: 'Footwear',
+    collection: 'fall',
     price: 139.0,
     rating: 4.5,
     description: 'Lightweight knit sneakers with responsive foam cushioning built for all-day comfort.',
@@ -75,6 +80,7 @@ const products = [
     id: 5,
     name: 'Horizon Polarized Sunglasses',
     category: 'Eyewear',
+    collection: 'fall',
     price: 99.0,
     rating: 4.4,
     description: 'Hand-polished acetate frames with polarized, UV400-rated glass lenses.',
@@ -85,6 +91,7 @@ const products = [
     id: 6,
     name: 'Lumen Mirrorless Camera',
     category: 'Photography',
+    collection: 'fall',
     price: 899.0,
     rating: 4.9,
     description: '24MP full-frame mirrorless camera with in-body stabilization and 4K/60 video.',
@@ -95,6 +102,7 @@ const products = [
     id: 7,
     name: 'Orbit Minimalist Desk Lamp',
     category: 'Home',
+    collection: 'fall',
     price: 79.0,
     rating: 4.3,
     description: 'Dimmable LED desk lamp with wireless charging base and USB-C passthrough.',
@@ -105,11 +113,126 @@ const products = [
     id: 8,
     name: 'Cipher Mechanical Keyboard',
     category: 'Accessories',
+    collection: 'fall',
     price: 159.0,
     rating: 4.7,
     description: 'Hot-swappable mechanical keyboard with hand-lubed switches and a CNC aluminum case.',
     image: 'https://picsum.photos/seed/cartcraft-kb1/600/600',
     badge: 'New'
+  },
+
+  // ---- Summer Collection ----
+  {
+    id: 9,
+    name: 'Solstice Linen Shirt',
+    category: 'Apparel',
+    collection: 'summer',
+    price: 69.0,
+    rating: 4.5,
+    description: 'Breathable 100% linen shirt, garment-washed for a relaxed drape in high heat.',
+    image: 'https://picsum.photos/seed/cartcraft-summer1/600/600',
+    badge: 'New'
+  },
+  {
+    id: 10,
+    name: 'Tide Swim Shorts',
+    category: 'Apparel',
+    collection: 'summer',
+    price: 45.0,
+    rating: 4.4,
+    description: 'Quick-dry swim shorts with a recycled-nylon shell and a secure zip pocket.',
+    image: 'https://picsum.photos/seed/cartcraft-summer2/600/600',
+    badge: null
+  },
+  {
+    id: 11,
+    name: 'Breeze Straw Hat',
+    category: 'Accessories',
+    collection: 'summer',
+    price: 39.0,
+    rating: 4.6,
+    description: 'Hand-woven wide-brim straw hat with UPF 50+ sun protection.',
+    image: 'https://picsum.photos/seed/cartcraft-summer3/600/600',
+    badge: null
+  },
+  {
+    id: 12,
+    name: 'Coral Reef Snorkel Set',
+    category: 'Outdoors',
+    collection: 'summer',
+    price: 59.0,
+    rating: 4.3,
+    description: 'Anti-fog mask and dry-top snorkel set with a compact mesh travel bag.',
+    image: 'https://picsum.photos/seed/cartcraft-summer4/600/600',
+    badge: 'Limited'
+  },
+  {
+    id: 13,
+    name: 'Citrus Cooler Bottle',
+    category: 'Home',
+    collection: 'summer',
+    price: 29.0,
+    rating: 4.7,
+    description: 'Double-wall insulated bottle that keeps drinks cold for 24 hours.',
+    image: 'https://picsum.photos/seed/cartcraft-summer5/600/600',
+    badge: 'Best Seller'
+  },
+
+  // ---- Winter Collection ----
+  {
+    id: 14,
+    name: 'Drift Wool Sweater',
+    category: 'Apparel',
+    collection: 'winter',
+    price: 129.0,
+    rating: 4.8,
+    description: 'Heavyweight merino-blend sweater, hand-finished with a ribbed shawl collar.',
+    image: 'https://picsum.photos/seed/cartcraft-winter1/600/600',
+    badge: 'Best Seller'
+  },
+  {
+    id: 15,
+    name: 'Frost Puffer Jacket',
+    category: 'Apparel',
+    collection: 'winter',
+    price: 219.0,
+    rating: 4.9,
+    description: 'Recycled-down puffer rated to -15°C, with sealed seams and a packable hood.',
+    image: 'https://picsum.photos/seed/cartcraft-winter2/600/600',
+    badge: 'New'
+  },
+  {
+    id: 16,
+    name: 'Alpine Knit Beanie',
+    category: 'Accessories',
+    collection: 'winter',
+    price: 35.0,
+    rating: 4.5,
+    description: 'Double-layer ribbed beanie in brushed wool for all-day warmth.',
+    image: 'https://picsum.photos/seed/cartcraft-winter3/600/600',
+    badge: null
+  },
+  {
+    id: 17,
+    name: 'Ember Thermal Mug',
+    category: 'Home',
+    collection: 'winter',
+    price: 32.0,
+    rating: 4.6,
+    description: 'Vacuum-insulated travel mug that holds heat for up to 8 hours.',
+    image: 'https://picsum.photos/seed/cartcraft-winter4/600/600',
+    badge: null
+  },
+  {
+    id: 18,
+    name: 'Glacier Wool Gloves',
+    category: 'Accessories',
+    collection: 'winter',
+    price: 42.0,
+    rating: 4.4,
+    description: 'Touchscreen-friendly wool gloves lined with brushed fleece.',
+    image: 'https://picsum.photos/seed/cartcraft-winter5/600/600',
+    badge: 'Limited'
   }
 ];
 
@@ -117,9 +240,13 @@ const products = [
 // API Routes
 // ---------------------------------------------------------------------------
 
-// GET /api/products — list every product
+// GET /api/products — list every product, or filter with ?collection=summer
 app.get('/api/products', (req, res) => {
-  res.json(products);
+  const { collection } = req.query;
+  if (!collection || collection === 'all') {
+    return res.json(products);
+  }
+  res.json(products.filter((p) => p.collection === collection));
 });
 
 // GET /api/products/:id — fetch a single product

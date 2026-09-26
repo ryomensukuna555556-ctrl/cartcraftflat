@@ -16,6 +16,12 @@ const el = {
   productError: document.getElementById('product-error'),
   productCountLabel: document.getElementById('product-count-label'),
   productCardTemplate: document.getElementById('product-card-template'),
+  shopHeading: document.getElementById('shop-heading'),
+
+  collectionsDropdown: document.getElementById('collections-dropdown'),
+  collectionsToggleBtn: document.getElementById('collections-toggle-btn'),
+  collectionsMenu: document.getElementById('collections-menu'),
+  collectionsChevron: document.getElementById('collections-chevron'),
 
   cartToggleBtn: document.getElementById('cart-toggle-btn'),
   cartCloseBtn: document.getElementById('cart-close-btn'),
@@ -81,8 +87,10 @@ export function renderSkeleton(count = 8) {
 /**
  * Render the full product grid from an array of product objects.
  * @param {Array<Object>} products
+ * @param {string} [headingText] — e.g. "Summer Collection". Defaults to "Shop all products".
  */
-export function renderProducts(products) {
+export function renderProducts(products, headingText = 'Shop all products') {
+  el.shopHeading.textContent = headingText;
   el.productGrid.innerHTML = '';
 
   products.forEach((product) => {
@@ -302,6 +310,39 @@ export function closeStoryOverlay() {
     el.storyOverlay.classList.add('hidden');
     el.storyOverlay.classList.remove('flex');
   }, 300);
+}
+
+// ---------------------------------------------------------------------------
+// Collections dropdown (header nav)
+// ---------------------------------------------------------------------------
+
+export function openCollectionsMenu() {
+  el.collectionsMenu.classList.remove('hidden');
+  el.collectionsToggleBtn.setAttribute('aria-expanded', 'true');
+  el.collectionsChevron.classList.add('rotate-180');
+}
+
+export function closeCollectionsMenu() {
+  el.collectionsMenu.classList.add('hidden');
+  el.collectionsToggleBtn.setAttribute('aria-expanded', 'false');
+  el.collectionsChevron.classList.remove('rotate-180');
+}
+
+export function toggleCollectionsMenu() {
+  if (el.collectionsMenu.classList.contains('hidden')) {
+    openCollectionsMenu();
+  } else {
+    closeCollectionsMenu();
+  }
+}
+
+/** Highlight whichever collection option matches the current filter. */
+export function markActiveCollection(collectionId) {
+  el.collectionsMenu.querySelectorAll('.collection-option').forEach((btn) => {
+    const isActive = btn.dataset.collection === collectionId;
+    btn.classList.toggle('bg-white/5', isActive);
+    btn.classList.toggle('text-white', isActive);
+  });
 }
 
 // ---------------------------------------------------------------------------

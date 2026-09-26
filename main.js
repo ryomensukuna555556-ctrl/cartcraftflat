@@ -9,8 +9,38 @@ import { fetchProducts, submitCheckout } from './api.js';
 import { cart } from './cart.js';
 import * as ui from './ui.js';
 
-/** In-memory copy of the fetched catalog, keyed by id, for fast lookups. */
+/** In-memory copy of the fetched catalog, keyed by id, for fast lookups
+ *  (used for cart add/remove regardless of which collection is on screen). */
 let catalog = new Map();
+
+/** Full, unfiltered product list — the source of truth for collection filtering. */
+let allProducts = [];
+
+/** Which collection is currently shown in the grid. */
+let currentCollection = 'all';
+
+const COLLECTION_LABELS = {
+  all: 'Shop all products',
+  fall: 'Fall Collection',
+  summer: 'Summer Collection',
+  winter: 'Winter Collection'
+};
+
+/**
+ * Filter the in-memory product list by collection and re-render the grid.
+ * The cart is untouched by this — items already added stay in the bag no
+ * matter which collection you switch to next.
+ */
+function applyCollectionFilter(collectionId) {
+  currentCollection = collectionId;
+
+  const filtered =
+    collectionId === 'all' ? allProducts : allProducts.filter((p) => p.collection === collectionId);
+
+  ui.renderProducts(filtered, COLLECTION_LABELS[collectionId] || 'Shop all products');
+  ui.markActiveCollection(collectionId);
+  ui.el.shopHeading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
 // ---------------------------------------------------------------------------
 // Boot
@@ -21,8 +51,10 @@ async function init() {
 
   try {
     const products = await fetchProducts();
+    allProducts = products;
     catalog = new Map(products.map((p) => [p.id, p]));
     ui.renderProducts(products);
+    ui.markActiveCollection('all');
   } catch (err) {
     console.error(err);
     ui.renderProductError();
@@ -74,12 +106,25 @@ function bindStaticControls() {
     if (e.target === ui.el.storyOverlay) ui.closeStoryOverlay();
   });
 
+  ui.el.collectionsToggleBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    ui.toggleCollectionsMenu();
+  });
+
+  // Clicking anywhere outside the dropdown closes it.
+  document.addEventListener('click', (e) => {
+    if (!ui.el.collectionsDropdown.contains(e.target)) {
+      ui.closeCollectionsMenu();
+    }
+  });
+
   // Escape key closes whichever overlay is open.
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     ui.closeCartDrawer();
     ui.closeCheckoutOverlay();
     ui.closeStoryOverlay();
+    ui.closeCollectionsMenu();
   });
 }
 
@@ -99,6 +144,12 @@ function bindDelegatedClicks() {
     if (action === 'open-story') {
       e.preventDefault();
       ui.openStoryOverlay();
+      return;
+    }
+
+    if (action === 'select-collection') {
+      applyCollectionFilter(actionEl.dataset.collection);
+      ui.closeCollectionsMenu();
       return;
     }
 
